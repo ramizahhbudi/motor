@@ -43,6 +43,7 @@
                 <a href="{{ url('/user') }}" class="nav-item nav-link {{ Request::is('user') ? 'active text-danger' : '' }}">Home</a>
                 <a href="{{ url('/motor') }}" class="nav-item nav-link {{ Request::is('motor') ? 'active text-danger' : '' }}">Motormu</a>
                 <a href="{{ url('/booking') }}" class="nav-item nav-link {{ Request::is('services') ? 'active text-danger' : '' }}">Layanan</a>
+                <a href="{{ route('user.view_data.form') }}" class="nav-item nav-link {{ request()->routeIs('user.view_data.form') ? 'active' : '' }}">Lihat Data Saya</a>
             </div>
 
             @auth

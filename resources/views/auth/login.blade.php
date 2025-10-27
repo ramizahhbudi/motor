@@ -24,9 +24,10 @@
             <label for="password" class="form-label">Password</label>
             <input type="password" name="password" id="password" class="form-control" required>
         </div>
-                <div class="mb-3">
+        
+        <div class="mb-3">
             <label for="pin" class="form-label">PIN</label>
-            <input type="password" name="pin" id="pin" class="form-control" required>
+            <input type="password" name="pin" id="pin" class="form-control" required maxlength="6">
         </div>
         <div class="mb-3 form-check">
             <input type="checkbox" name="remember" id="remember" class="form-check-input">

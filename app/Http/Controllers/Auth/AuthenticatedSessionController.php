@@ -8,10 +8,19 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
-use App\Models\User;
+use App\Models\User; // 1. Import Model User
+use App\Services\EncryptionService; // 2. Import Service Enkripsi
 
 class AuthenticatedSessionController extends Controller
 {
+    protected $encryptionService;
+
+    // 3. Inject service melalui constructor
+    public function __construct(EncryptionService $encryptionService)
+    {
+        $this->encryptionService = $encryptionService;
+    }
+
     /**
      * Display the login view.
      */
@@ -23,57 +32,47 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    // public function store(LoginRequest $request): RedirectResponse
-    // {
-    //     $request->authenticate();
-
-    //     $request->session()->regenerate();
-
-    //     // Check user role and redirect accordingly
-    //     $role = Auth::user()->role;
-
-    //     switch ($role) {
-    //         case 'admin':
-    //             return redirect()->route('admin.dashboard');
-    //         case 'mekanik':
-    //             return redirect()->route('mechanic.dashboard');
-    //         case 'user':
-    //         default:
-    //             return redirect()->route('user_home');
-    //     }
-    // }
-
     public function store(LoginRequest $request): RedirectResponse
     {
-        // 1. Find the user by their email
+        // 4. Tambahkan validasi untuk PIN
+        $request->validate([
+            'pin' => ['required', 'string', 'size:6'],
+        ]);
+
+        $cleanedLoginPassword = preg_replace('/[^a-zA-Z0-9]/', '', $request->password); 
+        // 5. Cari user berdasarkan email
         $user = User::where('email', $request->email)->first();
 
-        // 2. Check if user exists and if the plain text password matches
-        if ($user && $user->password === $request->password) {
-            
-            // 3. Manually log the user in
-            Auth::login($user);
-            
-            // 4. Regenerate the session ID for security
-            $request->session()->regenerate();
+        // 6. Lakukan proses dekripsi
+        if ($user) {
+            // Dekripsi password dari DB menggunakan PIN dari form login
+            $decryptedPassword = $this->encryptionService->decrypt($user->password, $request->pin);
 
-            // 5. Check user role and redirect accordingly
-            $role = $user->role; // Get role from the user object
+            // 7. Bandingkan password
+            if ($decryptedPassword === $request->password) {
+                // Jika cocok, login-kan user
+                Auth::login($user, $request->boolean('remember'));
+                $request->session()->regenerate();
 
-            switch ($role) {
-                case 'admin':
-                    return redirect()->route('admin.dashboard');
-                case 'mekanik':
-                    return redirect()->route('mechanic.dashboard');
-                case 'user':
-                default:
-                    return redirect()->route('user_home');
+                // Logika redirect berdasarkan role Anda
+                $role = Auth::user()->role;
+                switch ($role) {
+                    case 'admin':
+                        return redirect()->route('admin.dashboard');
+                        break;
+                    case 'mekanik':
+                        return redirect()->route('mechanic.dashboard');
+                        break;
+                    default:
+                        return redirect()->route('user_home');
+                        break;
+                }
             }
         }
 
-        // If the check fails, return with an error
+        // Jika user tidak ada atau password/PIN salah
         return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
+            'email' => 'Kredensial yang diberikan tidak cocok dengan data kami.',
         ])->onlyInput('email');
     }
 
@@ -83,11 +82,8 @@ class AuthenticatedSessionController extends Controller
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
-
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
-
         return redirect('/');
     }
 }

@@ -34,5 +34,15 @@ class UserSeeder extends Seeder
             'pin' => '654321', // Contoh PIN untuk mekanik
             'phone' => '081234567891',
         ]);
+
+        // Membuat User Biasa
+        User::create([
+            'name' => 'Ijah',
+            'email' => 'ijah@gmail.com',
+            'password' => 'password', // Ganti password sesuai kebutuhan
+            'role' => 'user',
+            'pin' => '111222', // Contoh PIN untuk user biasa
+            'phone' => '081234567892',
+        ]);
     }
 }

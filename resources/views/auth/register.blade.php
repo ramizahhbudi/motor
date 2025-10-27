@@ -36,17 +36,22 @@
             <label for="password_confirmation" class="form-label">Confirm Password</label>
             <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" required>
         </div>
+
         <div class="mb-3">
-            <label for="pin" :value="__('PIN')">PIN</label>
+            <label for="pin" class="form-label">PIN (6 Karakter Alfanumerik)</label>
             <input id="pin" type="password"
-                            name="pin"
-                            required autocomplete="new-pin" />
+                   class="form-control" {{-- Tambahkan kelas ini --}}
+                   name="pin"
+                   required autocomplete="new-pin" 
+                   maxlength="6" /> {{-- Tambahkan maxlength --}}
         </div>
         <div class="mb-3">
-            <label for="pin_confirmation" :value="__('Confirm PIN')">PIN Confirmation</label>
+            <label for="pin_confirmation" class="form-label">Konfirmasi PIN</label>
             <input id="pin_confirmation"
-                            type="password"
-                            name="pin_confirmation" required />
+                   type="password"
+                   class="form-control" {{-- Tambahkan kelas ini --}}
+                   name="pin_confirmation" required 
+                   maxlength="6" /> {{-- Tambahkan maxlength --}}
         </div>
         <button type="submit" class="btn btn-primary w-100">Register</button>
         <div class="text-center mt-3">

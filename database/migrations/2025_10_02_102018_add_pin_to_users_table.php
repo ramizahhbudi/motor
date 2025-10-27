@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Tambahkan kolom 'pin' setelah kolom 'password'
-            $table->float('pin')->after('password');
+            // UBAH BARIS INI: dari float() menjadi string('pin', 6)
+            $table->string('pin', 6)->after('password');
+
+            // Baris ini sudah benar
+            $table->text('name')->change();
+            $table->text('password')->change();
         });
     }
 
@@ -24,6 +28,10 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->dropColumn('pin');
+            
+            // Opsional tapi baik untuk ditambahkan: kembalikan tipe kolom seperti semula
+            $table->string('name', 255)->change();
+            $table->string('password', 255)->change();
         });
     }
 };

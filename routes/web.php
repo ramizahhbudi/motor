@@ -9,11 +9,25 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\AdminCashierController;
 use App\Http\Controllers\AdminHomeController;
 use App\Http\Controllers\MechanicDashboardController;
+use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\UserDataController;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\DecryptionController; // Tambahkan ini di atas
 
 // Redirect root to login
 Route::get('/', function () {
     return redirect()->route('login'); // Redirect root to login
 });
+Route::get('/dashboard', function () {
+    $user = Auth::user();
+    if ($user->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    } elseif ($user->role === 'mekanik') {
+        return redirect()->route('mechanic.dashboard');
+    } else {
+        return redirect()->route('user_home'); // Arahkan ke user_home
+    }
+})->middleware(['auth', 'verified'])->name('dashboard');
 
 // Routes for Admin
 Route::middleware(['auth', 'role:admin'])->group(function () {
@@ -73,6 +87,12 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::patch('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.updatePassword');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+   Route::get('/lihat-data', [DecryptionController::class, 'showForm'])
+         ->name('user.view_data.form');
+    
+    Route::post('/lihat-data', [DecryptionController::class, 'decryptData'])
+         ->name('user.view_data.decrypt');
 });
 
 // Include Authentication Routes
