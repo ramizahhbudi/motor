@@ -39,7 +39,6 @@ class AuthenticatedSessionController extends Controller
             'pin' => ['required', 'string', 'size:6'],
         ]);
 
-        $cleanedLoginPassword = preg_replace('/[^a-zA-Z0-9]/', '', $request->password); 
         // 5. Cari user berdasarkan email
         $user = User::where('email', $request->email)->first();
 
@@ -59,13 +58,10 @@ class AuthenticatedSessionController extends Controller
                 switch ($role) {
                     case 'admin':
                         return redirect()->route('admin.dashboard');
-                        break;
                     case 'mekanik':
                         return redirect()->route('mechanic.dashboard');
-                        break;
                     default:
                         return redirect()->route('user_home');
-                        break;
                 }
             }
         }
