@@ -12,7 +12,8 @@ use App\Http\Controllers\MechanicDashboardController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\UserDataController;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\DecryptionController; // Tambahkan ini di atas
+use App\Http\Controllers\DecryptionController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController; // Tambahkan ini di atas
 
 // Redirect root to login
 Route::get('/', function () {
@@ -97,3 +98,5 @@ Route::middleware(['auth'])->group(function () {
 
 // Include Authentication Routes
 require __DIR__.'/auth.php';
+
+Route::post('/login', [AuthenticatedSessionController::class, 'store'])->middleware('throttle:5,1');
