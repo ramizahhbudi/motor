@@ -9,7 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use App\Models\User; // 1. Import Model User
-use App\Services\EncryptionService; // 2. Import Service Enkripsi
+use App\Services\EncryptionService;
+use Illuminate\Support\Facades\RateLimiter; // 2. Import Service Enkripsi
 
 class AuthenticatedSessionController extends Controller
 {
@@ -34,6 +35,7 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
+        $request->ensureIsNotRateLimited();
         // 4. Tambahkan validasi untuk PIN
         $request->validate([
             'pin' => ['required', 'string', 'size:6'],
@@ -65,6 +67,8 @@ class AuthenticatedSessionController extends Controller
                 }
             }
         }
+
+        RateLimiter::hit($request->throttleKey(), 300);
 
         // Jika user tidak ada atau password/PIN salah
         return back()->withErrors([

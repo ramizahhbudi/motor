@@ -99,4 +99,3 @@ Route::middleware(['auth'])->group(function () {
 // Include Authentication Routes
 require __DIR__.'/auth.php';
 
-Route::post('/login', [AuthenticatedSessionController::class, 'store'])->middleware('throttle:5,1');

@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('password');
             // Hapus 'AFTER email_verified_at'
             $table->enum('role', ['user', 'admin', 'mekanik'])->default('user');
-            $table->string('phone');
+            $table->text('phone');
             $table->rememberToken();
             $table->timestamps();
         });
