@@ -1,6 +1,6 @@
 <?php
 
-namespace app\Services; // Pastikan namespace benar
+namespace App\Services; // Pastikan namespace benar
 
 class EncryptionService
 {

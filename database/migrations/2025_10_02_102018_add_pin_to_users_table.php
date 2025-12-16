@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             // UBAH BARIS INI: dari float() menjadi string('pin', 6)
-            $table->text('pin')->after('password');
+            $table->string('pin')->after('password');
 
             // Baris ini sudah benar
             $table->text('name')->change();

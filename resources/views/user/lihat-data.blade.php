@@ -1,72 +1,90 @@
-@extends('layouts.userapp') {{-- Menggunakan layout userapp Anda --}}
+@extends('layouts.userapp')
 
 @section('title', 'Lihat Data Saya')
 
 @section('content')
-<div class="container py-5" style="background-color: #f8f9fa;">
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="text-primary text-uppercase">Data Transparansi Pengguna</h1>
+        <p class="text-muted">Masukkan PIN untuk melihat proses enkripsi data Anda secara real-time.</p>
+    </div>
+
     <div class="row justify-content-center">
-        <div class="col-lg-9">
-
-            {{-- Form Input PIN --}}
-            <div class="card shadow-lg border-0 mb-4">
-                <div class="card-header bg-primary text-white py-3">
-                    <h4 class="mb-0">Input PIN Keamanan Anda</h4>
+        <div class="col-lg-10">
+            <div class="card shadow">
+                <div class="card-header bg-light text-white">
+                    <h5 class="mb-0"><i class="fa fa-lock me-2"></i>Verifikasi Keamanan</h5>
                 </div>
-                <div class="card-body p-4">
-                    <p class="card-text text-muted">Untuk mengakses detail data, silakan masukkan 6 digit PIN yang Anda buat saat registrasi.</p>
+                <div class="card-body">
                     
-                    {{-- Form action menunjuk ke rute yang kita buat --}}
-                    <form method="post" action="{{ route('user.view_data.decrypt') }}" class="mt-3">
-                        @csrf
-                        <div class="mb-3">
-                            <label for="pin_check" class="form-label fs-5"><strong>PIN</strong></label>
-                            <input id="pin_check" name="pin" type="password" class="form-control form-control-lg @error('pin') is-invalid @enderror" maxlength="6" required placeholder="******" autofocus>
-                            @error('pin')
-                                <div class="invalid-feedback fw-bold">{{ $message }}</div>
-                            @enderror
+                    {{-- JIKA BELUM ADA DATA (TAMPILKAN FORM PIN) --}}
+                    @if (!isset($data))
+                        <form action="{{ url('/lihat-data') }}" method="POST">
+                            @csrf
+                            <div class="form-group mb-3">
+                                <label for="pin" class="fw-bold">Masukkan PIN Anda:</label>
+                                <input type="password" name="pin" class="form-control form-control-lg text-center" 
+                                       placeholder="******" maxlength="6" required>
+                                @error('pin')
+                                    <div class="text-danger mt-2">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 py-3">Buka Enkripsi Data</button>
+                        </form>
+                    
+                    {{-- JIKA DATA SUDAH DIBUKA (TAMPILKAN TABEL) --}}
+                    @else
+                        <div class="alert alert-success">
+                            <i class="fa fa-check-circle"></i> Data berhasil didekripsi menggunakan PIN Anda.
                         </div>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">Tampilkan Data</button>
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped">
+                                <thead class="table-dark text-center">
+                                    <tr>
+                                        <th>Jenis Data</th>
+                                        <th>Data Asli (Plaintext)</th>
+                                        <th>Tahap 1 (Playfair)</th>
+                                        <th>Tahap 2 (Caesar)</th>
+                                        <th>Tahap 3 (Vigenere)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{-- Baris NAMA --}}
+                                    <tr>
+                                        <td class="fw-bold">Nama Lengkap</td>
+                                        <td class="text-primary fw-bold">{{ $data['name']['original'] }}</td>
+                                        <td class="text-muted small">{{ $data['name']['playfair'] }}</td>
+                                        <td class="text-muted small">{{ $data['name']['caesar'] }}</td>
+                                        <td class="text-danger fw-bold">{{ $data['name']['vigenere'] }}</td>
+                                    </tr>
+
+                                    {{-- Baris PASSWORD (Disensor ****) --}}
+                                    <tr>
+                                        <td class="fw-bold">Password</td>
+                                        <td class="text-primary fw-bold">{{ $data['password']['original'] }}</td>
+                                        <td class="text-muted small">{{ $data['password']['playfair'] }}</td>
+                                        <td class="text-muted small">{{ $data['password']['caesar'] }}</td>
+                                        <td class="text-danger fw-bold">{{ $data['password']['vigenere'] }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-                    </form>
+
+                        {{-- Info Tambahan AES --}}
+                        <div class="mt-4 p-3 bg-light rounded border">
+                            <h6 class="fw-bold">Data Email & Telepon (AES-256)</h6>
+                            <p class="mb-1">Email: <strong>{{ $data['email'] }}</strong> <span class="badge bg-success">Verified AES</span></p>
+                            <p class="mb-0">Telepon: <strong>{{ $data['phone'] }}</strong> <span class="badge bg-success">Verified AES</span></p>
+                        </div>
+
+                        <div class="mt-3 text-center">
+                            <a href="{{ url('/lihat-data') }}" class="btn btn-secondary">Tutup / Reset</a>
+                        </div>
+                    @endif
+
                 </div>
             </div>
-            
-            {{-- Bagian Hasil (Hanya tampil jika session 'view_data' ada) --}}
-            @if (session('view_data'))
-            @php $data = session('view_data'); @endphp
-            <div class="card shadow-lg border-0">
-                 <div class="card-header bg-success text-white py-3">
-                    <h4 class="mb-0">Detail Data dan Proses Enkripsi</h4>
-                 </div>
-                <div class="card-body p-4" style="word-wrap: break-word;">
-                    
-                    <h5 class="text-dark border-bottom pb-2 mb-3">Data Asli</h5>
-                    <div class="alert alert-info p-3">
-                        <div class="row"><div class="col-sm-3"><strong>Username</strong></div><div class="col-sm-9">: {{ $data['original']['name'] }}</div></div><hr class="my-2">
-                        <div class="row"><div class="col-sm-3"><strong>Password</strong></div><div class="col-sm-9">: {{ $data['original']['password'] }}</div></div>
-                    </div>
-
-                    <h5 class="text-dark border-bottom pb-2 mt-4 mb-3">Hasil Enkripsi Playfair (Lapis 1)</h5>
-                    <div class="alert alert-light border p-3">
-                         <div class="row"><div class="col-sm-3"><strong>Username</strong></div><div class="col-sm-9">: {{ $data['playfair']['name'] }}</div></div><hr class="my-2">
-                        <div class="row"><div class="col-sm-3"><strong>Password</strong></div><div class="col-sm-9">: {{ $data['playfair']['password'] }}</div></div>
-                    </div>
-
-                    <h5 class="text-dark border-bottom pb-2 mt-4 mb-3">Hasil Enkripsi Caesar (Lapis 2)</h5>
-                    <div class="alert alert-light border p-3">
-                        <div class="row"><div class="col-sm-3"><strong>Username</strong></div><div class="col-sm-9">: {{ $data['caesar']['name'] }}</div></div><hr class="my-2">
-                        <div class="row"><div class="col-sm-3"><strong>Password</strong></div><div class="col-sm-9">: {{ $data['caesar']['password'] }}</div></div>
-                    </div>
-
-                    <h5 class="text-dark border-bottom pb-2 mt-4 mb-3">Hasil Enkripsi Vigenere (Data Final di DB)</h5>
-                    <div class="alert alert-light border p-3">
-                        <div class="row"><div class="col-sm-3"><strong>Username</strong></div><div class="col-sm-9">: {{ $data['vigenere']['name'] }}</div></div><hr class="my-2">
-                        <div class="row"><div class="col-sm-3"><strong>Password</strong></div><div class="col-sm-9">: {{ $data['vigenere']['password'] }}</div></div>
-                    </div>
-                </div>
-            </div>
-            @endif
         </div>
     </div>
 </div>

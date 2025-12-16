@@ -13,13 +13,12 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
+            $table->text('name');  // Text: Biar aman untuk 3-Lapis
+            $table->text('email'); // Text: AES-256 (Tanpa Unique)
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            // Hapus 'AFTER email_verified_at'
+            $table->text('password'); // Text: Biar aman untuk 3-Lapis
             $table->enum('role', ['user', 'admin', 'mekanik'])->default('user');
-            $table->text('phone');
+            $table->text('phone'); // Text: AES-256
             $table->rememberToken();
             $table->timestamps();
         });

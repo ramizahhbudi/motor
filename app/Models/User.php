@@ -30,8 +30,9 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'email' => 'encrypted', 
         'phone' => 'encrypted',
-        'pin' => 'encrypted',
+        'pin'   => 'hashed',
     ];
     /**
      * Relasi untuk bookings yang dilakukan oleh user.

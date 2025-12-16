@@ -42,7 +42,6 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
 
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-            // TARGET MISI 1: Hitungan blokir diatur jadi 300 detik (5 menit)
             RateLimiter::hit($this->throttleKey(), 300);
 
             throw ValidationException::withMessages([
@@ -72,7 +71,7 @@ class LoginRequest extends FormRequest
 
         // TARGET MISI 1: Pesan Error Bahasa Indonesia Kustom
         throw ValidationException::withMessages([
-            'email' => "Terlalu banyak percobaan login gagal. Demi keamanan, IP Anda diblokir selama 5 menit (Sisa waktu: {$seconds} detik).",
+            'email' => "Terlalu banyak percobaan login gagal. Demi keamanan, Akun Anda diblokir selama 5 menit (Sisa waktu: {$seconds} detik).",
         ]);
     }
 

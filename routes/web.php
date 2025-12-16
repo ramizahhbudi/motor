@@ -89,6 +89,14 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.updatePassword');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    // [BARU] Route untuk Halaman Ganti Password
+    Route::get('/profile/password', [ProfileController::class, 'editPassword'])->name('password.edit');
+    
+    // [UPDATE] Pastikan nama route ini sesuai form action
+    Route::patch('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.updatePassword');
+    
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
    Route::get('/lihat-data', [DecryptionController::class, 'showForm'])
          ->name('user.view_data.form');
     

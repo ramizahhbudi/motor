@@ -8,77 +8,86 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
-use App\Models\User; // 1. Import Model User
+use App\Models\User;
 use App\Services\EncryptionService;
-use Illuminate\Support\Facades\RateLimiter; // 2. Import Service Enkripsi
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class AuthenticatedSessionController extends Controller
 {
     protected $encryptionService;
 
-    // 3. Inject service melalui constructor
     public function __construct(EncryptionService $encryptionService)
     {
         $this->encryptionService = $encryptionService;
     }
 
-    /**
-     * Display the login view.
-     */
     public function create(): View
     {
         return view('auth.login');
     }
 
-    /**
-     * Handle an incoming authentication request.
-     */
     public function store(LoginRequest $request): RedirectResponse
     {
+        // 1. Cek Blokir 10 Detik
         $request->ensureIsNotRateLimited();
-        // 4. Tambahkan validasi untuk PIN
-        $request->validate([
-            'pin' => ['required', 'string', 'size:6'],
-        ]);
 
-        // 5. Cari user berdasarkan email
-        $user = User::where('email', $request->email)->first();
+        $request->validate(['pin' => ['required', 'string', 'size:6']]);
 
-        // 6. Lakukan proses dekripsi
+        // 2. Cari User Manual (Looping karena Email terenkripsi AES di DB)
+        $users = User::all();
+        $user = $users->first(function ($u) use ($request) {
+            // Bandingkan email (ignore case sensitivity & spasi)
+            return strtolower(trim($u->email)) === strtolower(trim($request->email));
+        });
+
+        // 3. Logika Verifikasi
         if ($user) {
-            // Dekripsi password dari DB menggunakan PIN dari form login
-            $decryptedPassword = $this->encryptionService->decrypt($user->password, $request->pin);
+            
+            // A. Cek PIN (Menggunakan Hash karena di Model pin => 'hashed')
+            $isPinValid = Hash::check($request->pin, $user->pin);
 
-            // 7. Bandingkan password
-            if ($decryptedPassword === $request->password) {
-                // Jika cocok, login-kan user
+            // B. Cek Password (Menggunakan Dekripsi 3-Lapis Manual)
+            $isPasswordValid = false;
+            try {
+                // Gunakan PIN inputan user untuk membuka password
+                $decryptedPassword = $this->encryptionService->decrypt($user->password, $request->pin);
+                
+                if ($decryptedPassword === $request->password) {
+                    $isPasswordValid = true;
+                }
+            } catch (\Exception $e) {
+                $isPasswordValid = false;
+            }
+
+            // JIKA KEDUANYA BENAR
+            if ($isPinValid && $isPasswordValid) {
+                RateLimiter::clear($request->throttleKey());
                 Auth::login($user, $request->boolean('remember'));
                 $request->session()->regenerate();
 
-                // Logika redirect berdasarkan role Anda
+                session(['auth_pin' => $request->pin]);
+                
+                // Redirect sesuai Role
                 $role = Auth::user()->role;
                 switch ($role) {
-                    case 'admin':
-                        return redirect()->route('admin.dashboard');
-                    case 'mekanik':
-                        return redirect()->route('mechanic.dashboard');
-                    default:
-                        return redirect()->route('user_home');
+                    case 'admin': return redirect()->route('admin.dashboard');
+                    case 'mekanik': return redirect()->route('mechanic.dashboard');
+                    default: return redirect()->route('user_home');
                 }
             }
         }
 
-        RateLimiter::hit($request->throttleKey(), 300);
+        // 4. Jika Gagal (Blokir 10 Detik)
+        RateLimiter::hit($request->throttleKey(), 10);
 
-        // Jika user tidak ada atau password/PIN salah
-        return back()->withErrors([
-            'email' => 'Kredensial yang diberikan tidak cocok dengan data kami.',
-        ])->onlyInput('email');
+        throw ValidationException::withMessages([
+            'email' => trans('auth.failed'),
+        ]);
     }
 
-    /**
-     * Destroy an authenticated session.
-     */
+
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();

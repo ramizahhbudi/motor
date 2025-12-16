@@ -4,10 +4,31 @@
 
 @section('content')
 
-<!-- Layanan Start -->
+{{-- 1. KITA PANGGIL SERVICE ENKRIPSI DI SINI (Hanya untuk Tampilan) --}}
+@inject('encryptionService', 'App\Services\EncryptionService')
+
+{{-- 2. LOGIKA DEKRIPSI SEMENTARA --}}
+@php
+    // Ambil nama acak dari database
+    $tampilanNama = Auth::user()->name; 
+    
+    // Ambil PIN sementara dari sesi login
+    $pin = session('auth_pin');
+
+    // Jika ada PIN, coba buka kuncinya hanya untuk variabel $tampilanNama
+    if ($pin) {
+        try {
+            $tampilanNama = $encryptionService->decrypt(Auth::user()->name, $pin);
+        } catch (\Exception $e) {
+            // Jika error, biarkan tetap kode acak
+        }
+    }
+@endphp
+
 <div class="container-xxl py-5">
     <div class="container">
         <div class="row g-4">
+            {{-- (Bagian ikon layanan biarkan sama...) --}}
             <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
                 <div class="d-flex py-5 px-4">
                     <i class="fa fa-certificate fa-3x text-primary flex-shrink-0"></i>
@@ -45,16 +66,10 @@
 <div class="container-fluid py-4">
     
     @if (session('encryption_steps'))
+        {{-- (Bagian Alert Info Registrasi biarkan sama...) --}}
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             <h4 class="alert-heading">Registrasi Berhasil & PIN Dienkripsi!</h4>
-            <p>PIN Anda telah dienkripsi dengan aman melalui 3 lapisan. Berikut adalah detail prosesnya:</p>
-            <hr>
-            <ul class="mb-0">
-                <li><strong>PIN Asli Anda:</strong> {{ session('encryption_steps')['original_pin'] }}</li>
-                <li><strong>1. Hasil Enkripsi Playfair:</strong> {{ session('encryption_steps')['step1_playfair'] }}</li>
-                <li><strong>2. Hasil Enkripsi Caesar:</strong> {{ session('encryption_steps')['step2_caesar'] }}</li>
-                <li><strong>3. Hasil Akhir (Vigenere) yang Disimpan:</strong> <strong>{{ session('encryption_steps')['step3_vigenere_final'] }}</strong></li>
-            </ul>
+            <p>PIN Anda telah dienkripsi dengan aman melalui 3 lapisan...</p>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
@@ -63,7 +78,9 @@
         <div class="col-lg-12">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Selamat Datang, {{ Auth::user()->name }}!</h5>
+                    {{-- 3. TAMPILKAN NAMA YANG SUDAH DIBUKA --}}
+                    <h5 class="card-title">Selamat Datang, {{ $tampilanNama }}!</h5>
+                    
                     <p class="card-text">
                         Anda telah berhasil login ke dalam sistem.
                     </p>
@@ -72,6 +89,4 @@
         </div>
     </div>
 </div>
-<!-- Layanan End -->
-
 @endsection
