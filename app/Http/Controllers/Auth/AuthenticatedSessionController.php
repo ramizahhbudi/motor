@@ -80,7 +80,7 @@ class AuthenticatedSessionController extends Controller
         }
 
         // 4. Jika Gagal
-        RateLimiter::hit($request->throttleKey(), 25);
+        RateLimiter::hit($request->throttleKey(), 45);
 
         // Ambil sisa waktu blokir (dalam detik)
         $seconds = RateLimiter::availableIn($request->throttleKey());

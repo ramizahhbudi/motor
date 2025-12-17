@@ -42,7 +42,7 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
 
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-            $attempts = RateLimiter::hit($this->throttleKey(), 25);
+            $attempts = RateLimiter::hit($this->throttleKey(), 45);
             $limit = 5;
             $remaining = $limit - $attempts;
 
