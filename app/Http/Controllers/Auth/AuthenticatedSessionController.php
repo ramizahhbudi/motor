@@ -79,11 +79,28 @@ class AuthenticatedSessionController extends Controller
             }
         }
 
-        // 4. Jika Gagal (Blokir 10 Detik)
-        RateLimiter::hit($request->throttleKey(), 10);
+        // 4. Jika Gagal
+        RateLimiter::hit($request->throttleKey(), 25);
+
+        // Ambil sisa waktu blokir (dalam detik)
+        $seconds = RateLimiter::availableIn($request->throttleKey());
+        
+        // Hitung sisa kesempatan
+        $attempts = RateLimiter::attempts($request->throttleKey());
+        $remaining = max(0, 5 - $attempts);
+
+        // [PENTING] Kirim data detik ke session agar bisa dibaca JS
+        if ($remaining == 0) {
+            session()->flash('lockout_time', $seconds);
+        }
+
+        // Tentukan pesan error
+        $message = ($remaining > 0) 
+            ? "Identitas atau PIN salah. Sisa kesempatan: {$remaining} kali." 
+            : "Akun diblokir sementara. Tunggu {$seconds} detik.";
 
         throw ValidationException::withMessages([
-            'email' => trans('auth.failed'),
+            'email' => $message,
         ]);
     }
 

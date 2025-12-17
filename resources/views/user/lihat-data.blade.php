@@ -3,6 +3,12 @@
 @section('title', 'Lihat Data Saya')
 
 @section('content')
+
+{{-- TAMBAHKAN KODE PHP INI UNTUK AMBIL DATA DARI CONTROLLER --}}
+@php
+    $data = session('view_data');
+@endphp
+
 <div class="container py-5">
     <div class="text-center mb-5">
         <h1 class="text-primary text-uppercase">Data Transparansi Pengguna</h1>
@@ -17,8 +23,10 @@
                 </div>
                 <div class="card-body">
                     
-                    {{-- JIKA BELUM ADA DATA (TAMPILKAN FORM PIN) --}}
-                    @if (!isset($data))
+                    {{-- UBAH KONDISI IF DISINI --}}
+                    @if (!$data) 
+                    
+                        {{-- Form Input PIN (Tetap sama seperti kode Anda) --}}
                         <form action="{{ url('/lihat-data') }}" method="POST">
                             @csrf
                             <div class="form-group mb-3">
@@ -32,8 +40,8 @@
                             <button type="submit" class="btn btn-primary w-100 py-3">Buka Enkripsi Data</button>
                         </form>
                     
-                    {{-- JIKA DATA SUDAH DIBUKA (TAMPILKAN TABEL) --}}
                     @else
+                        {{-- Bagian Tabel (Tetap sama, karena Controller sudah menyesuaikan struktur datanya) --}}
                         <div class="alert alert-success">
                             <i class="fa fa-check-circle"></i> Data berhasil didekripsi menggunakan PIN Anda.
                         </div>
@@ -53,15 +61,17 @@
                                     {{-- Baris NAMA --}}
                                     <tr>
                                         <td class="fw-bold">Nama Lengkap</td>
+                                        {{-- Controller sudah mengirim array ['name']['original'] --}}
                                         <td class="text-primary fw-bold">{{ $data['name']['original'] }}</td>
                                         <td class="text-muted small">{{ $data['name']['playfair'] }}</td>
                                         <td class="text-muted small">{{ $data['name']['caesar'] }}</td>
                                         <td class="text-danger fw-bold">{{ $data['name']['vigenere'] }}</td>
                                     </tr>
 
-                                    {{-- Baris PASSWORD (Disensor ****) --}}
+                                    {{-- Baris PASSWORD --}}
                                     <tr>
                                         <td class="fw-bold">Password</td>
+                                        {{-- Di Controller ini sudah diset jadi '********' --}}
                                         <td class="text-primary fw-bold">{{ $data['password']['original'] }}</td>
                                         <td class="text-muted small">{{ $data['password']['playfair'] }}</td>
                                         <td class="text-muted small">{{ $data['password']['caesar'] }}</td>
@@ -74,12 +84,13 @@
                         {{-- Info Tambahan AES --}}
                         <div class="mt-4 p-3 bg-light rounded border">
                             <h6 class="fw-bold">Data Email & Telepon (AES-256)</h6>
+                            {{-- Pastikan key array sesuai dengan controller --}}
                             <p class="mb-1">Email: <strong>{{ $data['email'] }}</strong> <span class="badge bg-success">Verified AES</span></p>
                             <p class="mb-0">Telepon: <strong>{{ $data['phone'] }}</strong> <span class="badge bg-success">Verified AES</span></p>
                         </div>
 
                         <div class="mt-3 text-center">
-                            <a href="{{ url('/lihat-data') }}" class="btn btn-secondary">Tutup / Reset</a>
+                            <a href="{{ route('user_home')}}" class="btn btn-secondary">Kembali</a>
                         </div>
                     @endif
 

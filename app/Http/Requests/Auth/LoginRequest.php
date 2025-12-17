@@ -42,10 +42,15 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
 
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey(), 300);
+            $attempts = RateLimiter::hit($this->throttleKey(), 25);
+            $limit = 5;
+            $remaining = $limit - $attempts;
+
+            // Pastikan tidak menampilkan angka negatif
+            $remaining = max(0, $remaining);
 
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                'email' => trans('auth.failed') . " Sisa kesempatan: {$remaining} kali.",
             ]);
         }
 
