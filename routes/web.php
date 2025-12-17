@@ -14,6 +14,7 @@ use App\Http\Controllers\UserDataController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\DecryptionController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController; // Tambahkan ini di atas
+use App\Http\Controllers\AdminHealthController;
 
 // Redirect root to login
 Route::get('/', function () {
@@ -40,6 +41,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/admin/cashier/process', [AdminCashierController::class, 'process'])->name('admin.cashier.process');
     Route::post('/admin/cashier/finalize/{id}', [AdminCashierController::class, 'finalizePayment'])->name('admin.cashier.finalize');
     Route::get('/admin/cashier/receipt/{id}', [AdminCashierController::class, 'receipt'])->name('admin.cashier.receipt');
+    Route::get('/admin/syshealth', [AdminHealthController::class, 'healthCheck'])->name('admin.syshealth');
 });
 
 // Routes for Mechanic

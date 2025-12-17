@@ -22,6 +22,7 @@
 </head>
 
 <body>
+    @inject('encryptionService', 'App\Services\EncryptionService')
     <!-- Spinner Start -->
     <div id="spinner" class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
         <div class="spinner-border text-secondary" style="width: 3rem; height: 3rem;" role="status">
@@ -31,7 +32,7 @@
     <!-- Spinner End -->
 
     <!-- Navbar Start -->
-    <nav class="navbar navbar-expand-lg bg-white navbar-light shadow sticky-top p-0">
+    <nav class="navbar navbar-expand-lg bg-white navbar-light shadow sticky-top p-0">=
         <a href="index.html" class="navbar-brand d-flex align-items-center px-4 px-lg-5">
             <img src="{{ asset('img/logo.png') }}" alt="CarServ Logo" class="img-fluid" style="max-height: 50px;">
         </a>
@@ -45,13 +46,29 @@
                 <a href="{{ url('/admin/inventory') }}" class="nav-item nav-link {{ Request::is('/admin/inventory') ? 'active text-info' : '' }}">Inventory</a>
             </div>
 
-            @auth
+        @auth
+                {{-- 2. LOGIKA DEKRIPSI NAMA DI NAVBAR --}}
+            @php
+                $displayName = Auth::user()->name; // Default (Encrypted)
+                $pin = session('auth_pin');        // Ambil PIN dari Session Login
+
+                if ($pin) {
+                    try {
+                            // Dekripsi Nama Pakai PIN
+                        $displayName = $encryptionService->decrypt(Auth::user()->name, $pin);
+                    } catch (\Exception $e) {
+                            // Jika gagal dekripsi, biarkan tetap ciphertext
+                    }
+                }
+            @endphp
+
             <div class="nav-item dropdown">
                 <a href="#" class="nav-link dropdown-toggle text-secondary" data-bs-toggle="dropdown">
-                    {{ Auth::user()->name }}
+                    {{ $displayName }}
                 </a>
                 <div class="dropdown-menu fade-up m-0">
                     <a href="{{ route('profile.edit') }}" class="dropdown-item">Edit Profile</a>
+                    <a href="{{ route('admin.syshealth') }}" class="dropdown-item">System Health</a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="dropdown-item">Logout</button>
